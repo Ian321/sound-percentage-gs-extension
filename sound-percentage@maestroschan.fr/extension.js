@@ -59,7 +59,7 @@ export default class SoundPercentageExtension {
 		let input = this.getVolumeInput()._input;
 
 		const self = this;
-		const update = () => {self.updateVolume()};
+		const update = () => { self.updateVolume(); };
 
 		this.OUTPUT_SIGNAL_ID = output.connect('stream-updated', update);
 		this.INPUT_SIGNAL_ID = input.connect('stream-updated', update);
@@ -78,6 +78,15 @@ export default class SoundPercentageExtension {
 	//---------------------------------------------------------------------------
 	enable() {
 		for (const indicator of [this.getVolumeOutput(), this.getVolumeInput()]) {
+			if (!indicator) {
+				// The extension got loaded before the quick settings.
+				const self = this;
+				imports.mainloop.timeout_add(100, () => {
+					self.enable();
+					return false;
+				});
+				return;
+			}
 			indicator._percentageLabel = new St.Label({
 				y_expand: true,
 				y_align: Clutter.ActorAlign.CENTER
